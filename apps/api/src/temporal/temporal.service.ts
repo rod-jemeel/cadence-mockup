@@ -1,10 +1,10 @@
-import { Injectable, OnModuleInit, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Connection, Client, WorkflowHandle } from '@temporalio/client';
 import type { Cadence, CadenceStep, CadenceWorkflowInput, WorkflowState } from '@repo/shared';
 
 @Injectable()
-export class TemporalService implements OnModuleInit {
+export class TemporalService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(TemporalService.name);
   private client: Client | null = null;
   private connection: Connection | null = null;
@@ -13,14 +13,14 @@ export class TemporalService implements OnModuleInit {
   constructor(private configService: ConfigService) {}
 
   async onModuleInit() {
-    const address = this.configService.get<string>('temporal.address');
+    const address = this.configService.get<string>('temporal.address') ?? 'localhost:7233';
     this.logger.log(`Connecting to Temporal at ${address}`);
 
     try {
       this.connection = await Connection.connect({ address });
       this.client = new Client({
         connection: this.connection,
-        namespace: this.configService.get<string>('temporal.namespace'),
+        namespace: this.configService.get<string>('temporal.namespace') ?? 'default',
       });
       this.connected = true;
       this.logger.log('Temporal client connected');
@@ -28,6 +28,13 @@ export class TemporalService implements OnModuleInit {
       this.logger.warn(
         `Failed to connect to Temporal at ${address}. Enrollment features will be unavailable until Temporal is running.`,
       );
+    }
+  }
+
+  async onModuleDestroy() {
+    if (this.connection) {
+      await this.connection.close();
+      this.logger.log('Temporal connection closed');
     }
   }
 
@@ -47,7 +54,7 @@ export class TemporalService implements OnModuleInit {
   ): Promise<string> {
     const client = this.ensureConnected();
     const workflowId = `cadence-${enrollmentId}`;
-    const taskQueue = this.configService.get<string>('temporal.taskQueue');
+    const taskQueue = this.configService.get<string>('temporal.taskQueue') ?? 'email-cadence';
 
     const input: CadenceWorkflowInput = {
       cadence,
@@ -55,7 +62,7 @@ export class TemporalService implements OnModuleInit {
     };
 
     await client.workflow.start('cadenceWorkflow', {
-      taskQueue: taskQueue!,
+      taskQueue,
       workflowId,
       args: [input],
     });
