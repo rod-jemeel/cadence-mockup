@@ -10,6 +10,11 @@ import type * as activities from '../activities/email.activities';
 
 const { sendMockEmail } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 seconds',
+  retry: {
+    maximumAttempts: 3,
+    initialInterval: '1 second',
+    backoffCoefficient: 2,
+  },
 });
 
 export const updateCadenceSignal = defineSignal<[CadenceStep[]]>('updateCadence');
@@ -46,14 +51,22 @@ export async function cadenceWorkflow(input: CadenceWorkflowInput): Promise<Work
     const step = steps[currentStepIndex];
 
     if (step.type === 'SEND_EMAIL') {
-      await sendMockEmail({
-        to: input.contactEmail,
-        subject: step.subject,
-        body: step.body,
-      });
+      try {
+        await sendMockEmail({
+          to: input.contactEmail,
+          subject: step.subject,
+          body: step.body,
+        });
+      } catch {
+        status = 'FAILED';
+        break;
+      }
     } else if (step.type === 'WAIT') {
       await sleep(step.seconds * 1000);
     }
+
+    // Re-check status after await (signal may have fired during sleep/activity)
+    if (status !== 'RUNNING') break;
 
     currentStepIndex++;
 
