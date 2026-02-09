@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+.turbo/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE / Tools
+.vscode/
+.idea/
+.cursor/
+.claude/
+.agents/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+npm-debug.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Test
+coverage/
+
+# OMC state
+.omc/
+
+# Local MCP config
+.mcp.json
+
+# Windows artifacts
+nul
