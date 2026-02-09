@@ -1,30 +1,40 @@
 import { createWorker } from './worker';
+import type { NativeConnection, Worker } from '@temporalio/worker';
 
 const RETRY_INTERVAL_MS = 5000;
 const MAX_RETRIES = Infinity;
 
 async function main() {
   let retries = 0;
+  let currentWorker: Worker | null = null;
+  let currentConnection: NativeConnection | null = null;
+
+  // Register signal handlers once outside the loop
+  let shuttingDown = false;
+  const shutdown = async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log('Shutting down worker...');
+    currentWorker?.shutdown();
+    await currentConnection?.close();
+  };
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
+
+  const taskQueue = process.env.TEMPORAL_TASK_QUEUE || 'email-cadence';
 
   while (retries < MAX_RETRIES) {
     try {
-      const worker = await createWorker();
-      console.log('Temporal worker started. Listening on task queue: email-cadence');
+      const { worker, connection } = await createWorker();
+      currentWorker = worker;
+      currentConnection = connection;
+      console.log(`Temporal worker started. Listening on task queue: ${taskQueue}`);
       retries = 0;
-
-      // Graceful shutdown
-      let shuttingDown = false;
-      const shutdown = async () => {
-        if (shuttingDown) return;
-        shuttingDown = true;
-        console.log('Shutting down worker...');
-        worker.shutdown();
-      };
-      process.on('SIGINT', shutdown);
-      process.on('SIGTERM', shutdown);
 
       await worker.run();
       console.log('Worker stopped.');
+
+      await connection.close();
       return;
     } catch (err) {
       retries++;
@@ -36,6 +46,7 @@ async function main() {
         await new Promise((r) => setTimeout(r, RETRY_INTERVAL_MS));
       } else {
         console.error('Worker failed:', err);
+        await currentConnection?.close();
         process.exit(1);
       }
     }

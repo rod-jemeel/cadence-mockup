@@ -6,11 +6,13 @@ export async function createWorker() {
     address: process.env.TEMPORAL_ADDRESS || 'localhost:7233',
   });
 
-  return Worker.create({
+  const worker = await Worker.create({
     connection,
     namespace: process.env.TEMPORAL_NAMESPACE || 'default',
     taskQueue: process.env.TEMPORAL_TASK_QUEUE || 'email-cadence',
     workflowsPath: require.resolve('./workflows/cadence.workflow'),
     activities,
   });
+
+  return { worker, connection };
 }
