@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
+import type { EnrollmentState } from '@repo/shared';
 import { EnrollmentsService } from './enrollments.service';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateCadenceStepsDto } from './dto/update-cadence-steps.dto';
@@ -8,7 +9,7 @@ export class EnrollmentsController {
   constructor(private readonly enrollmentsService: EnrollmentsService) {}
 
   @Post()
-  create(@Body() createEnrollmentDto: CreateEnrollmentDto) {
+  async create(@Body() createEnrollmentDto: CreateEnrollmentDto) {
     return this.enrollmentsService.create(createEnrollmentDto);
   }
 
@@ -18,15 +19,16 @@ export class EnrollmentsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<EnrollmentState> {
     return this.enrollmentsService.findOne(id);
   }
 
   @Post(':id/update-cadence')
-  updateCadenceSteps(
+  @HttpCode(HttpStatus.OK)
+  async updateCadenceSteps(
     @Param('id') id: string,
     @Body() updateCadenceStepsDto: UpdateCadenceStepsDto,
-  ) {
+  ): Promise<EnrollmentState> {
     return this.enrollmentsService.updateCadenceSteps(id, updateCadenceStepsDto);
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException, ServiceUnavailableException, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import type { EnrollmentState } from '@repo/shared';
 import { TemporalService } from '../temporal/temporal.service';
@@ -14,6 +14,7 @@ interface EnrollmentRecord {
 
 @Injectable()
 export class EnrollmentsService {
+  private readonly logger = new Logger(EnrollmentsService.name);
   private readonly enrollments = new Map<string, EnrollmentRecord>();
 
   constructor(
@@ -25,11 +26,18 @@ export class EnrollmentsService {
     const enrollmentId = uuidv4();
     const cadence = this.cadencesService.findOne(createEnrollmentDto.cadenceId);
 
-    const workflowId = await this.temporalService.startCadenceWorkflow(
-      enrollmentId,
-      cadence,
-      createEnrollmentDto.contactEmail,
-    );
+    let workflowId: string;
+    try {
+      workflowId = await this.temporalService.startCadenceWorkflow(
+        enrollmentId,
+        cadence,
+        createEnrollmentDto.contactEmail,
+      );
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) throw error;
+      this.logger.error(`Failed to start workflow for enrollment ${enrollmentId}`, error);
+      throw new InternalServerErrorException('Failed to start enrollment workflow');
+    }
 
     this.enrollments.set(enrollmentId, {
       cadenceId: createEnrollmentDto.cadenceId,
@@ -64,17 +72,22 @@ export class EnrollmentsService {
       throw new NotFoundException(`Enrollment with ID ${id} not found`);
     }
 
-    const workflowState = await this.temporalService.getWorkflowState(record.workflowId);
-
-    return {
-      enrollmentId: id,
-      cadenceId: record.cadenceId,
-      contactEmail: record.contactEmail,
-      status: workflowState.status,
-      currentStepIndex: workflowState.currentStepIndex,
-      stepsVersion: workflowState.stepsVersion,
-      steps: workflowState.steps,
-    };
+    try {
+      const workflowState = await this.temporalService.getWorkflowState(record.workflowId);
+      return {
+        enrollmentId: id,
+        cadenceId: record.cadenceId,
+        contactEmail: record.contactEmail,
+        status: workflowState.status,
+        currentStepIndex: workflowState.currentStepIndex,
+        stepsVersion: workflowState.stepsVersion,
+        steps: workflowState.steps,
+      };
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException || error instanceof NotFoundException) throw error;
+      this.logger.error(`Failed to query workflow state for enrollment ${id}`, error);
+      throw new InternalServerErrorException('Failed to query workflow state');
+    }
   }
 
   async updateCadenceSteps(
@@ -86,10 +99,16 @@ export class EnrollmentsService {
       throw new NotFoundException(`Enrollment with ID ${id} not found`);
     }
 
-    await this.temporalService.updateCadenceSteps(
-      record.workflowId,
-      updateCadenceStepsDto.steps,
-    );
+    try {
+      await this.temporalService.updateCadenceSteps(
+        record.workflowId,
+        updateCadenceStepsDto.steps,
+      );
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException || error instanceof NotFoundException) throw error;
+      this.logger.error(`Failed to signal workflow for enrollment ${id}`, error);
+      throw new InternalServerErrorException('Failed to update cadence steps');
+    }
 
     return this.findOne(id);
   }
