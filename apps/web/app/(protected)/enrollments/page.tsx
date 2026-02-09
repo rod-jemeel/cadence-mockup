@@ -5,7 +5,6 @@ import Link from "next/link"
 import { listEnrollments } from "@/lib/api/enrollments"
 import { Button } from "@/components/ui/button"
 import { PlusIcon } from "@heroicons/react/24/solid"
-import { Badge } from "@/components/ui/badge"
 
 interface EnrollmentRow {
   id: string
