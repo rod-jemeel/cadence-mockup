@@ -12,12 +12,9 @@ dist/
 .env.local
 .env.*.local
 
-# IDE / Tools
+# IDE
 .vscode/
 .idea/
-.cursor/
-.claude/
-.agents/
 *.swp
 *.swo
 
@@ -34,15 +31,3 @@ pnpm-debug.log*
 
 # Test
 coverage/
-
-# OMC state
-.omc/
-
-# Local MCP config
-.mcp.json
-
-# Windows artifacts
-nul
-
-# Project instructions (local only)
-CLAUDE.md
