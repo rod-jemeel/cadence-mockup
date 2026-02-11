@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, InternalServerErrorException, ServiceUnavailableException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException, ServiceUnavailableException, ConflictException, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import type { EnrollmentState } from '@repo/shared';
 import { TemporalService } from '../temporal/temporal.service';
@@ -106,6 +106,10 @@ export class EnrollmentsService {
       );
     } catch (error) {
       if (error instanceof ServiceUnavailableException || error instanceof NotFoundException) throw error;
+      const errMsg = error instanceof Error ? error.message : String(error);
+      if (errMsg.includes('not found') || errMsg.includes('completed') || errMsg.includes('terminated')) {
+        throw new ConflictException('Workflow has already completed and cannot be updated');
+      }
       this.logger.error(`Failed to signal workflow for enrollment ${id}`, error);
       throw new InternalServerErrorException('Failed to update cadence steps');
     }

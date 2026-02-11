@@ -38,13 +38,25 @@ export class TemporalService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private ensureConnected(): Client {
-    if (!this.connected || !this.client) {
+  private async ensureConnected(): Promise<Client> {
+    if (this.connected && this.client) {
+      return this.client;
+    }
+    const address = this.configService.get<string>('temporal.address') ?? 'localhost:7233';
+    try {
+      this.connection = await Connection.connect({ address });
+      this.client = new Client({
+        connection: this.connection,
+        namespace: this.configService.get<string>('temporal.namespace') ?? 'default',
+      });
+      this.connected = true;
+      this.logger.log('Temporal client connected (lazy reconnect)');
+      return this.client;
+    } catch {
       throw new ServiceUnavailableException(
-        'Temporal server is not available. Start Temporal and restart the API.',
+        'Temporal server is not available. Ensure Temporal is running.',
       );
     }
-    return this.client;
   }
 
   async startCadenceWorkflow(
@@ -52,7 +64,7 @@ export class TemporalService implements OnModuleInit, OnModuleDestroy {
     cadence: Cadence,
     contactEmail: string,
   ): Promise<string> {
-    const client = this.ensureConnected();
+    const client = await this.ensureConnected();
     const workflowId = `cadence-${enrollmentId}`;
     const taskQueue = this.configService.get<string>('temporal.taskQueue') ?? 'email-cadence';
 
@@ -72,14 +84,14 @@ export class TemporalService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getWorkflowState(workflowId: string): Promise<WorkflowState> {
-    const client = this.ensureConnected();
+    const client = await this.ensureConnected();
     const handle: WorkflowHandle = client.workflow.getHandle(workflowId);
     const state = await handle.query<WorkflowState>('getState');
     return state;
   }
 
   async updateCadenceSteps(workflowId: string, steps: CadenceStep[]): Promise<void> {
-    const client = this.ensureConnected();
+    const client = await this.ensureConnected();
     const handle: WorkflowHandle = client.workflow.getHandle(workflowId);
     await handle.signal('updateCadence', steps);
     this.logger.log(`Sent updateCadence signal to workflow ${workflowId}`);
