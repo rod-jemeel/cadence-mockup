@@ -43,3 +43,6 @@ coverage/
 
 # Windows artifacts
 nul
+
+# Project instructions (local only)
+CLAUDE.md

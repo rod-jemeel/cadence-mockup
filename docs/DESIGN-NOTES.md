@@ -155,7 +155,7 @@ SidebarProvider (--sidebar-width CSS prop)
 - Split layout: 50/50 desktop (left marketing, right form), stacked mobile
 - Form: react-hook-form + zod validation
 - Social buttons: Google, Apple, SSO (outline)
-- Redirects to `/dashboard` or `?next=` param
+- Redirects to `/cadences` or `?next=` param
 
 ### AuthGate
 - Checks session on mount, redirects to `/login?next=` if missing
