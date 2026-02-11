@@ -23,10 +23,10 @@ import { Shape59 } from "@/app/_components/Shape59"
 import { setMockSession } from "@/lib/proto/auth"
 
 function sanitizeNext(next: string | undefined) {
-  if (!next) return "/dashboard"
-  if (!next.startsWith("/")) return "/dashboard"
-  if (next.startsWith("//")) return "/dashboard"
-  if (next.startsWith("/login")) return "/dashboard"
+  if (!next) return "/cadences"
+  if (!next.startsWith("/")) return "/cadences"
+  if (next.startsWith("//")) return "/cadences"
+  if (next.startsWith("/login")) return "/cadences"
   return next
 }
 
@@ -61,8 +61,10 @@ export function LoginScreen({ next }: { next?: string }) {
     <div className="flex min-h-svh">
       {/* Left side - Branded panel */}
       <div className="relative hidden w-1/2 overflow-hidden bg-neutral-900 lg:block">
+        {/* Background photo */}
+        <div className="absolute inset-0 bg-[url('/login-bg.jpg')] bg-cover bg-center" />
         {/* Accent gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#F6BD02]/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#F6BD02]/20 via-black/60 to-black/80" />
 
         {/* Marketing headline */}
         <div className="absolute left-10 top-12 z-10 max-w-2xl">

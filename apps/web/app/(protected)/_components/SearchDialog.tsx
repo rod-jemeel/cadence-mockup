@@ -21,7 +21,8 @@ interface SearchDialogProps {
 }
 
 const pages = [
-  { id: "dashboard", title: "Dashboard", icon: Squares2X2Icon, group: "Pages" },
+  { id: "cadences", title: "Cadences", icon: Squares2X2Icon, group: "Pages" },
+  { id: "enrollments", title: "Enrollments", icon: Squares2X2Icon, group: "Pages" },
 ]
 
 const settings = [

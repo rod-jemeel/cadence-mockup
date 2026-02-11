@@ -10,7 +10,7 @@ export default function NotFound() {
           The page you are looking for does not exist.
         </p>
         <Button asChild className="mt-6">
-          <Link href="/dashboard">Go to Dashboard</Link>
+          <Link href="/cadences">Go to Cadences</Link>
         </Button>
       </div>
     </div>

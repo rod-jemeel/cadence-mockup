@@ -112,7 +112,7 @@ export default function EnrollmentDetailPage() {
         <div className="rounded-lg border p-4">
           <div className="text-xs text-muted-foreground">Current Step</div>
           <div className="mt-1 text-lg font-semibold">
-            {state.currentStepIndex + 1} / {state.steps.length}
+            {Math.min(state.currentStepIndex + 1, state.steps.length)} / {state.steps.length}
           </div>
         </div>
         <div className="rounded-lg border p-4">

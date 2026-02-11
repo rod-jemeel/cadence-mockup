@@ -56,7 +56,6 @@ const AVATAR_COLOR_MAP: Record<string, string> = {
 
 const actions = [
   { label: "Search", icon: MagnifyingGlassIcon, action: "search" },
-  { label: "Dashboard", icon: Squares2X2Icon, href: "/dashboard" },
   { label: "Cadences", icon: EnvelopeIcon, href: "/cadences" },
   { label: "Enrollments", icon: PlayIcon, href: "/enrollments" },
 ]
@@ -159,7 +158,7 @@ export function AppSidebar() {
         {/* Need help widget */}
         <div className="group-data-[collapsible=icon]:hidden">
           <div className="relative w-full overflow-hidden rounded-lg border border-muted bg-black p-3 text-white">
-            <div className="absolute inset-0 bg-[url('/truck2.png')] bg-cover bg-[position:center_65%]" />
+            <div className="absolute inset-0 bg-[url('/sidebar-bg.jpg')] bg-cover bg-center" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/75 to-transparent" />
             <div className="relative flex h-28 flex-col items-start justify-end gap-2">
               <div className="space-y-0.5">

@@ -22,9 +22,7 @@ import {
 const ROUTE_META: Record<
   string,
   { label: string; Icon: React.ComponentType<{ className?: string }> }
-> = {
-  "/dashboard": { label: "Dashboard", Icon: Squares2X2Icon },
-}
+> = {}
 
 export function AppShellHeader({
   pathname,
@@ -44,9 +42,9 @@ export function AppShellHeader({
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/dashboard" className="inline-flex items-center gap-1.5">
+              <Link href="/cadences" className="inline-flex items-center gap-1.5">
                 <Squares2X2Icon className="h-4 w-4" />
-                Dashboard
+                Cadences
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>

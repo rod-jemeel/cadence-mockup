@@ -18,9 +18,7 @@ const SIDEBAR_MAX = 400
 const SIDEBAR_DEFAULT = 256
 
 // Route to breadcrumb mapping
-const ROUTE_NAMES: Record<string, string> = {
-  "/dashboard": "Dashboard",
-}
+const ROUTE_NAMES: Record<string, string> = {}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -62,7 +60,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const currentPage = ROUTE_NAMES[pathname] || "Page"
-  const isDashboard = pathname === "/dashboard"
 
   return (
     <SidebarProvider
@@ -81,13 +78,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       />
       <SidebarInset className="flex min-w-0 flex-col overflow-x-hidden">
         <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
-          {!isDashboard && (
-            <AppShellHeader
-              pathname={pathname}
-              currentPage={currentPage}
-              onShare={handleShare}
-            />
-          )}
+          <AppShellHeader
+            pathname={pathname}
+            currentPage={currentPage}
+            onShare={handleShare}
+          />
           <main className="flex-1 overflow-y-auto px-6 py-6 md:px-8">
             {children}
           </main>
